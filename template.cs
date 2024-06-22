@@ -54,12 +54,8 @@ void Part2()
 	
 }
 
-void Main()
-{
-	ReadInput("input");
-	
-	Part1();
-	// Part2();
-}
 
+ReadInput("input");
 
+Part1();
+// Part2();

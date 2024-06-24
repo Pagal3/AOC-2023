@@ -5,8 +5,10 @@ string GetInputFilePath(string type_of_input_file)
     if (!type_of_input_file.EndsWith(".txt"))
         type_of_input_file += ".txt";
 
-
     int search_depth = 10; // how many directories up will be searched in order to find the input file
+
+    // string current_exe_directory = Environment.CurrentDirectory;
+    // string path_to_input = Path.GetFullPath(Path.Combine(current_exe_directory, @"..\..\..\..\..\..\"));
 
     string current_dir = System.IO.Directory.GetCurrentDirectory();
     for (int i=0; i < search_depth; i++) 
@@ -17,14 +19,18 @@ string GetInputFilePath(string type_of_input_file)
                 return path;
         }
 
-        current_dir = System.IO.Directory.GetParent(current_dir).FullName;
+        try { current_dir = System.IO.Directory.GetParent(current_dir).FullName; }
+        catch 
+        {
+            Console.WriteLine($"ERROR: Specified input file \"{type_of_input_file}\" not found. Reached search depth: {i}");
+            Environment.Exit(1);
+        }
+
     }
 
-    Console.WriteLine($"ERROR: Specified input file \"{type_of_input_file}\" not found\nSearch depth: {search_depth}");
-
+    Console.WriteLine($"ERROR: Specified input file \"{type_of_input_file}\" not found. Searched through all set {search_depth} directories.");
     Environment.Exit(1);
     return null;
-
 }
 
 

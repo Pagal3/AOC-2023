@@ -1,25 +1,32 @@
 ﻿string[] lines; // the input is saved here
+List<int[]>[] values_all; // stores all parsed values and calculated differences
 
 string GetInputFilePath(string type_of_input_file)
 {
     if (!type_of_input_file.EndsWith(".txt"))
         type_of_input_file += ".txt";
 
-    string current_exe_directory = Environment.CurrentDirectory;
-    string path_to_input = Path.GetFullPath(Path.Combine(current_exe_directory, @"..\..\..\..\..\..\"));
 
+    int search_depth = 10; // how many directories up will be searched in order to find the input file
 
-    foreach (var path in Directory.GetFiles(path_to_input))
+    // string current_exe_directory = Environment.CurrentDirectory;
+    // string path_to_input = Path.GetFullPath(Path.Combine(current_exe_directory, @"..\..\..\..\..\..\"));
+
+    string current_dir = System.IO.Directory.GetCurrentDirectory();
+    for (int i=0; i < search_depth; i++) 
     {
-        //Console.WriteLine(path); // full path
-        //Console.WriteLine(System.IO.Path.GetFileName(path)); // file name
+        foreach (var path in Directory.GetFiles(current_dir))
+        {
+            if (System.IO.Path.GetFileName(path) == type_of_input_file)
+                return path;
+        }
 
-        if (System.IO.Path.GetFileName(path) == type_of_input_file)
-            return path;
+        current_dir = System.IO.Directory.GetParent(current_dir).FullName;
     }
 
-    Console.WriteLine($"ERROR: Specified input file \"{type_of_input_file}\" not found in directory \"{path_to_input}\"");
+    Console.WriteLine($"ERROR: Specified input file \"{type_of_input_file}\" not found\nSearch depth: {search_depth}");
 
+    Environment.Exit(1);
     return null;
 
 }
@@ -28,38 +35,35 @@ void ReadInput(string type_of_input_file)
 {
     string path_to_input = GetInputFilePath(type_of_input_file);
 
-    if (path_to_input == null)
-        Environment.Exit(1);
-
     lines = File.ReadAllLines(path_to_input);
 }
 
 
 
 
-int[,] values;
 void ParseValues()
 {
     int length = lines[0].Count(c => c == ' ') + 1;
 
-    values = new int[lines.Length, length];
+    // values = new int[lines.Length, length];
 
     for (int i = 0; i < lines.Length; i++)
     {
         List<int[]> all_line_ints = [];
-        int[] ints = new int[length];
+        int[] first_ints = new int[length];
 
         string[] line = lines[i].Split(' ');
         for (int j = 0; j < length; j++)
-        {
-            values[i, j] = int.Parse(line[j]);
-            ints[j] = int.Parse(line[j]);
+            first_ints[j] = int.Parse(line[j]);
 
-        }
-
+        all_line_ints.Add(first_ints);
+        values_all[i] = all_line_ints;
 
             
     }
+
+    // Console.WriteLine();
+
 }
 
 int[] GetDiffs(int[] values)
@@ -79,10 +83,7 @@ void Part1()
     //List<List<int[]>> test = [];
     
 
-    for (int i = 0; i < values.Length; i++)
-    {
-
-    }
+    
 
 
     Console.WriteLine();
@@ -100,9 +101,10 @@ void Part2()
 }
 
 
-
 ReadInput("input");
-List<int[]>[] values_all = new List<int[]>[lines.Length];
+values_all = new List<int[]>[lines.Length];
+
+
 ParseValues();
 
 

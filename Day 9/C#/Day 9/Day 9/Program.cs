@@ -97,22 +97,28 @@ void PopulateWithAllDifferences()
     }
 }
 
-
-
 int GetNextValue(int index) 
 {
-
     int length = values_all[index].Count();
 
     int difference_to_add = values_all[index][length - 1][0]; // number that is at the bottom of the "pyramid"
 
     for (int i = length - 2; i >= 0; i--)
-    {
         difference_to_add += values_all[index][i].Last();
 
-    }
-
     return difference_to_add;
+}
+
+int GetPrevValue(int index) 
+{
+    int length = values_all[index].Count();
+
+    int difference_to_subtract = values_all[index][length - 1][0]; // number that is at the bottom of the "pyramid"
+
+    for (int i = length - 2; i >= 0; i--)
+        difference_to_subtract = values_all[index][i][0] - difference_to_subtract;
+
+    return difference_to_subtract;
 }
 
 void Part1()
@@ -129,21 +135,21 @@ void Part1()
 
 void Part2()
 {
+    PopulateWithAllDifferences();
 
+    int sum = 0;
+    for (int i = 0; i < values_all.Length; i++) // for each input line/values
+        sum += GetPrevValue(i);
 
-
-
+    Console.WriteLine($"Sum: {sum}");
 }
 
 
 ReadInput("input");
 values_all = new List<int[]>[lines.Length];
-
 ParseValues();
 
-
-
-Part1();
-// Part2();
+// Part1();
+Part2();
 
 

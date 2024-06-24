@@ -149,7 +149,7 @@ ReadInput("input");
 values_all = new List<int[]>[lines.Length];
 ParseValues();
 
-// Part1();
-Part2();
+// Part1(); // Correct answer: 1757008019
+Part2(); // Correct answer: 995
 
 

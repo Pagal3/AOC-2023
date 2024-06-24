@@ -6,7 +6,6 @@ string GetInputFilePath(string type_of_input_file)
     if (!type_of_input_file.EndsWith(".txt"))
         type_of_input_file += ".txt";
 
-
     int search_depth = 10; // how many directories up will be searched in order to find the input file
 
     // string current_exe_directory = Environment.CurrentDirectory;
@@ -21,14 +20,18 @@ string GetInputFilePath(string type_of_input_file)
                 return path;
         }
 
-        current_dir = System.IO.Directory.GetParent(current_dir).FullName;
+        try { current_dir = System.IO.Directory.GetParent(current_dir).FullName; }
+        catch 
+        {
+            Console.WriteLine($"ERROR: Specified input file \"{type_of_input_file}\" not found. Reached search depth: {i}");
+            Environment.Exit(1);
+        }
+
     }
 
-    Console.WriteLine($"ERROR: Specified input file \"{type_of_input_file}\" not found\nSearch depth: {search_depth}");
-
+    Console.WriteLine($"ERROR: Specified input file \"{type_of_input_file}\" not found. Searched through all set {search_depth} directories.");
     Environment.Exit(1);
     return null;
-
 }
 
 void ReadInput(string type_of_input_file)
@@ -37,8 +40,6 @@ void ReadInput(string type_of_input_file)
 
     lines = File.ReadAllLines(path_to_input);
 }
-
-
 
 
 void ParseValues()
@@ -76,20 +77,54 @@ int[] GetDiffs(int[] values)
     return diffs;
 }
 
+bool AreAllSame(int[] ints) 
+{
+    foreach (int num in ints)
+        if (num != ints[0]) return false;
+    return true;
+}
+
+void PopulateWithAllDifferences() 
+{
+    for (int i = 0; i < values_all.Length; i++) // for each input line/values
+    {
+        int[] diffs = values_all[i][0];
+
+        do {
+            diffs = GetDiffs(diffs);
+            values_all[i].Add(diffs);
+        } while (!AreAllSame(diffs));
+    }
+}
+
+
+
+int GetNextValue(int index) 
+{
+
+    int length = values_all[index].Count();
+
+    int difference_to_add = values_all[index][length - 1][0]; // number that is at the bottom of the "pyramid"
+
+    for (int i = length - 2; i >= 0; i--)
+    {
+        difference_to_add += values_all[index][i].Last();
+
+    }
+
+    return difference_to_add;
+}
+
 void Part1()
 {
 
-    //List<int[]> ints = [];
-    //List<List<int[]>> test = [];
-    
+    PopulateWithAllDifferences();
 
-    
+    int sum = 0;
+    for (int i = 0; i < values_all.Length; i++) // for each input line/values
+        sum += GetNextValue(i);
 
-
-    Console.WriteLine();
-
-
-
+    Console.WriteLine($"Sum: {sum}");
 }
 
 void Part2()
@@ -103,7 +138,6 @@ void Part2()
 
 ReadInput("input");
 values_all = new List<int[]>[lines.Length];
-
 
 ParseValues();
 

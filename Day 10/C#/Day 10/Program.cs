@@ -67,15 +67,11 @@ void ParsePipes()
             }
         }
     }
-
-    
 }
 
 
 string ConnectionType(int x_current, int y_current, int x_target, int y_target) 
 {
-
-
     if (x_current == x_target) // on the same row
     {
         // Left, Right
@@ -90,46 +86,74 @@ string ConnectionType(int x_current, int y_current, int x_target, int y_target)
     }
 }
 
-bool CanConnectTop(char current) 
+bool HasConnection_Right(char pipe)
 {
-    if (new[] { '|', '7', 'F' }.Contains(current))
+    if (new[] {'L', 'F', '-', 'S'}.Contains(pipe))
         return true;
     return false;
 }
 
-bool CanConnectBottom(char current) 
+bool HasConnection_Left(char pipe)
 {
-    if (new[] { '-', 'L', 'F' }.Contains(current))
+    if (new[] {'J', '7', '-', 'S'}.Contains(pipe))
         return true;
     return false;
 }
 
-bool CanConnectLeft(char current) 
+bool HasConnection_Top(char pipe)
 {
-    if (new[] { '-', 'L', 'F' }.Contains(current))
+    if (new[] {'L', 'J', '|', 'S'}.Contains(pipe))
         return true;
     return false;
 }
 
-bool CanConnectRight(char current) 
+bool HasConnection_Bottom(char pipe)
 {
-    if (new[] { '-', 'J', '7' }.Contains(current))
+    if (new[] {'7', 'F', '|', 'S'}.Contains(pipe))
         return true;
     return false;
 }
 
-bool IsConnectionPossible(string connection_type, char target_pipe)
+bool CanConnectTop(char current, char target) 
+{
+    if (HasConnection_Top(current) && HasConnection_Bottom(target))
+        return true;
+    return false;
+}
+
+bool CanConnectBottom(char current, char target) 
+{
+    if (HasConnection_Bottom(current) && HasConnection_Top(target))
+        return true;
+    return false;
+}
+
+bool CanConnectLeft(char current, char target) 
+{
+    if (HasConnection_Left(current) && HasConnection_Right(target))
+        return true;
+    return false;
+}
+
+bool CanConnectRight(char current, char target) 
+{
+    if (HasConnection_Right(current) && HasConnection_Left(target))
+        return true;
+    return false;
+}
+
+bool IsConnectionPossible(string connection_type, char current_pipe, char target_pipe)
 {
     switch (connection_type)
     {
         case "top":
-            return CanConnectTop(target_pipe);
+            return CanConnectTop(current_pipe, target_pipe);
         case "bottom":
-            return CanConnectBottom(target_pipe);
+            return CanConnectBottom(current_pipe, target_pipe);
         case "left":
-            return CanConnectLeft(target_pipe);
+            return CanConnectLeft(current_pipe, target_pipe);
         case "right":
-            return CanConnectRight(target_pipe);
+            return CanConnectRight(current_pipe, target_pipe);
         default:
             Console.WriteLine($"ERROR-UNREACHABLE: Invalid connection type: {connection_type}. At fn IsConnectionPossible()");
             Environment.Exit(1);
@@ -140,40 +164,94 @@ bool IsConnectionPossible(string connection_type, char target_pipe)
 
 bool PipesConnectable(int x_current, int y_current, int x_target, int y_target)
 {
+    // Check if out of bounds
+    if (new[] {x_target, y_target}.Contains(-1) || x_target >= pipe_grid.GetLength(0) || y_target >= pipe_grid.GetLength(1))
+        return false;
+
     string type = ConnectionType(x_current, y_current, x_target, y_target);
-    if (IsConnectionPossible(type, pipe_grid[x_target, y_target]))
+    if (IsConnectionPossible(type, pipe_grid[x_current, y_current], pipe_grid[x_target, y_target]))
         return true;
     return false;
 }
 
 int[] GetFirstPipeConnectedToS()
 {
-    int[] x_y = new int[2];
+    // int[] x_y = new int[2];
 
-    if (pipe_grid[sx, sy + 1])
+    if (HasConnection_Left(pipe_grid[sx, sy + 1])) // right
+        return [sx, sy + 1];
+    if (HasConnection_Top(pipe_grid[sx + 1, sy])) // bottom
+        return [sx + 1, sy];
+    if (HasConnection_Right(pipe_grid[sx, sy - 1])) // left
+        return [sx, sy - 1];
+    if (HasConnection_Bottom(pipe_grid[sx - 1, sy])) // top
+        return [sx - 1, sy];
 
-    return x_y;
+    Console.WriteLine($"ERROR-UNREACHABLE: No valid connections found! At fn GetFirstPipeConnectedToS()");
+
+    return null;
 }
-
-
 
 
 void Part1()
 {
 
-    int x = sx;
-    int y = sy;
+    int[] first_connection = GetFirstPipeConnectedToS();
+    int x = first_connection[0];
+    int y = first_connection[1];
+
+    int x_prev = sx;
+    int y_prev = sy;
 
     int count = 0;
 
     do 
     {
-        
+        if (!(x == x_prev && y + 1 == y_prev)) // right
+        {
+            if (PipesConnectable(x, y, x, y + 1))
+            {
+                x_prev = x; y_prev = y; 
+                y++; 
+                count++;
+                continue;
+            }
+        }
+        if (!(x + 1 == x_prev && y == y_prev)) // bottom
+        {
+            if (PipesConnectable(x, y, x + 1, y))
+            {
+                x_prev = x; y_prev = y;
+                x++;
+                count++;
+                continue;
+            }
+        }
+        if (!(x == x_prev && y - 1 == y_prev)) // left
+        {
+            if (PipesConnectable(x, y, x, y - 1))
+            {
+                x_prev = x; y_prev = y;
+                y--;
+                count++;
+                continue;
+            }
+        }
+        if (!(x - 1 == x_prev && y == y_prev)) // top
+        {
+            if (PipesConnectable(x, y, x - 1, y))
+            {
+                x_prev = x; y_prev = y;
+                x--;
+                count++;
+                continue;
+            }
+        }
 
-        count++;
     } while (pipe_grid[x,y] != 'S');
 
-	Console.WriteLine($"Farthest: {count / 2}");
+    count++;
+	Console.WriteLine($"Farthest: {count / 2}, total: {count}");
 }
 
 void Part2()
@@ -185,8 +263,9 @@ void Part2()
 }
 
 
-ReadInput("sample");
+ReadInput("input");
 ParsePipes();
 
 Part1();
+
 // Part2();

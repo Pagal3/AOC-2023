@@ -3,9 +3,13 @@
 string[] lines; // the input is saved here
 char[,] pipe_grid;
 
+// x is row, y is column
+// counting from the top-left - like a 2D array, because it is a 2D array
 int sx = -1;
 int sy = -1;
 
+bool enable_pipe_route;
+char[,] pipe_route = null;
 
 string GetInputFilePath(string type_of_input_file)
 {
@@ -161,7 +165,6 @@ bool IsConnectionPossible(string connection_type, char current_pipe, char target
     }
 }
 
-
 bool PipesConnectable(int x_current, int y_current, int x_target, int y_target)
 {
     // Check if out of bounds
@@ -192,6 +195,50 @@ int[] GetFirstPipeConnectedToS()
     return null;
 }
 
+void MarkPipe(int x, int y)
+{
+    if (!enable_pipe_route)
+        return;
+
+    switch (pipe_grid[x,y])
+    {
+        case 'S':
+            pipe_route[x, y] = '╬';
+            break;
+        case 'J':
+            pipe_route[x, y] = '╝';
+            break;
+        case 'L':
+            pipe_route[x, y] = '╚';
+            break;
+        case '7':
+            pipe_route[x, y] = '╗';
+            break;
+        case 'F':
+            pipe_route[x, y] = '╔';
+            break;
+        case '|':
+            pipe_route[x, y] = '║';
+            break;
+        case '-':
+            pipe_route[x, y] = '═';
+            break;
+        default:
+            Console.WriteLine($"ERROR-UNREACHABLE: Unexpected pipe: {pipe_route[x, y]}. At fn MarkPipe()");
+            return;
+    }
+}
+
+void DumpPipeGrid()
+{
+    for (int i = 0; i < pipe_route.GetLength(0); i++)
+    {
+        for (int j = 0; j < pipe_route.GetLength(1); j++)
+            Console.Write(pipe_route[i,j]);
+        Console.WriteLine();
+    }
+
+}
 
 void Part1()
 {
@@ -205,8 +252,13 @@ void Part1()
 
     int count = 0;
 
+    
+
     do 
     {
+
+        // if-checks exist to check for the previous pipe
+
         if (!(x == x_prev && y + 1 == y_prev)) // right
         {
             if (PipesConnectable(x, y, x, y + 1))
@@ -214,6 +266,7 @@ void Part1()
                 x_prev = x; y_prev = y; 
                 y++; 
                 count++;
+                MarkPipe(x, y);
                 continue;
             }
         }
@@ -224,6 +277,7 @@ void Part1()
                 x_prev = x; y_prev = y;
                 x++;
                 count++;
+                MarkPipe(x, y);
                 continue;
             }
         }
@@ -234,6 +288,7 @@ void Part1()
                 x_prev = x; y_prev = y;
                 y--;
                 count++;
+                MarkPipe(x, y);
                 continue;
             }
         }
@@ -244,6 +299,7 @@ void Part1()
                 x_prev = x; y_prev = y;
                 x--;
                 count++;
+                MarkPipe(x, y);
                 continue;
             }
         }
@@ -251,7 +307,11 @@ void Part1()
     } while (pipe_grid[x,y] != 'S');
 
     count++;
-	Console.WriteLine($"Farthest: {count / 2}, total: {count}");
+	Console.WriteLine($"Farthest: {count / 2}");
+
+    if (enable_pipe_route)
+        DumpPipeGrid();
+
 }
 
 void Part2()
@@ -265,6 +325,11 @@ void Part2()
 
 ReadInput("input");
 ParsePipes();
+
+
+enable_pipe_route = true;
+if (enable_pipe_route)
+    pipe_route = pipe_grid.Clone() as char[,];
 
 Part1();
 
